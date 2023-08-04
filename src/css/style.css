@@ -12,6 +12,9 @@ img {
 button {
   display: block;
 }
+.is-hidden {
+  display: none;
+}
 .container {
   max-width: 448px;
   padding: 0 15px;
@@ -52,4 +55,9 @@ input {
   .photo-card {
     flex-basis: calc((100% - 24px) / 3);
   }
+}
+
+.info {
+  display: flex;
+  gap: 8px;
 }
