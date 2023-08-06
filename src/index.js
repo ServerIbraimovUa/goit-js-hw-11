@@ -1,5 +1,6 @@
 import { Report } from 'notiflix/build/notiflix-report-aio';
 import { Notify } from 'notiflix/build/notiflix-notify-aio';
+import OnlyScroll from 'only-scrollbar';
 
 import SimpleLightbox from 'simplelightbox';
 import 'simplelightbox/dist/simple-lightbox.min.css';
@@ -12,7 +13,7 @@ refs.formEl.addEventListener('submit', onSubmitSearch);
 
 let currentPage = 1;
 let value = '';
-
+let total = 0;
 // loading image
 async function onload() {
   currentPage += 1;
@@ -23,6 +24,14 @@ async function onload() {
       createMarkup(resp.hits)
     );
     lightbox.refresh();
+    // console.log(total);
+    if (total === resp.totalHits) {
+      // message('Were sorry, but you ve reached the end of search results.', '');
+      refs.spanEl.textContent =
+        'Were sorry, but you ve reached the end of search results.';
+      return;
+    }
+    total += resp.hits.length;
   } catch (error) {
     Report.failure('404', '');
     console.error(error);
@@ -32,6 +41,7 @@ async function onload() {
 //search form
 async function onSubmitSearch(e) {
   e.preventDefault();
+  currentPage = 1;
   value = e.currentTarget.elements.searchQuery.value.trim();
   if (!value) {
     message('Please write correct data!');
@@ -48,11 +58,10 @@ async function onSubmitSearch(e) {
     if (resp.total === 0) {
       message('Please write correct data!');
     }
-    if (resp.hits.length < 40) {
-      message('Were sorry, but you ve reached the end of search results.', '');
-    }
+
     //библиотека лайбокс и уведомление
     lightbox.refresh();
+    total = resp.hits.length;
     Notify.success(`"Hooray! We found ${resp.totalHits} images."`);
   } catch (error) {
     Report.failure('404', '');
