@@ -38,6 +38,8 @@ async function getImage() {
       'beforeend',
       createMarkup(resp.hits)
     );
+    //библиотека лайбокс и уведомление
+    lightbox.refresh();
 
     //если неправильный запрос
     if (resp.total === 0) {
@@ -46,14 +48,12 @@ async function getImage() {
     }
     totalHitsImg += resp.hits.length;
 
-    if (total === resp.totalHits || total < 40) {
+    if (totalHitsImg === resp.totalHits || totalHitsImg < 40) {
       refs.spanEl.textContent =
         'Were sorry, but you ve reached the end of search results.';
       return;
     }
-    //библиотека лайбокс и уведомление
-    lightbox.refresh();
-    if (total > 40) {
+    if (totalHitsImg > 40) {
       const { height: cardHeight } =
         refs.galleryWrapperEl.firstElementChild.getBoundingClientRect();
 
