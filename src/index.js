@@ -1,7 +1,4 @@
 import { Report } from 'notiflix/build/notiflix-report-aio';
-import { Notify } from 'notiflix/build/notiflix-notify-aio';
-import OnlyScroll from 'only-scrollbar';
-
 import SimpleLightbox from 'simplelightbox';
 import 'simplelightbox/dist/simple-lightbox.min.css';
 import InfiniteScroll from 'infinite-scroll';
@@ -13,56 +10,58 @@ refs.formEl.addEventListener('submit', onSubmitSearch);
 
 let currentPage = 1;
 let value = '';
-let total = 0;
+let totalHitsImg = 0;
+
 // loading image
-async function onload() {
+function onload() {
   currentPage += 1;
-  try {
-    const resp = await fetchImages(currentPage, value);
-    refs.galleryWrapperEl.insertAdjacentHTML(
-      'beforeend',
-      createMarkup(resp.hits)
-    );
-    lightbox.refresh();
-    // console.log(total);
-    if (total === resp.totalHits) {
-      // message('Were sorry, but you ve reached the end of search results.', '');
-      refs.spanEl.textContent =
-        'Were sorry, but you ve reached the end of search results.';
-      return;
-    }
-    total += resp.hits.length;
-  } catch (error) {
-    Report.failure('404', '');
-    console.error(error);
-  }
+  getImage();
 }
 
 //search form
-async function onSubmitSearch(e) {
+function onSubmitSearch(e) {
   e.preventDefault();
-  currentPage = 1;
   value = e.currentTarget.elements.searchQuery.value.trim();
   if (!value) {
     message('Please write correct data!');
     return;
   }
 
+  clearGallery();
+  getImage();
+}
+
+async function getImage() {
   try {
     const resp = await fetchImages(currentPage, value);
-    console.log(resp);
-    //создание разметки
-    refs.galleryWrapperEl.innerHTML = createMarkup(resp.hits);
+    refs.galleryWrapperEl.insertAdjacentHTML(
+      'beforeend',
+      createMarkup(resp.hits)
+    );
 
     //если неправильный запрос
     if (resp.total === 0) {
       message('Please write correct data!');
+      return;
     }
+    totalHitsImg += resp.hits.length;
 
+    if (total === resp.totalHits || total < 40) {
+      refs.spanEl.textContent =
+        'Were sorry, but you ve reached the end of search results.';
+      return;
+    }
     //библиотека лайбокс и уведомление
     lightbox.refresh();
-    total = resp.hits.length;
-    Notify.success(`"Hooray! We found ${resp.totalHits} images."`);
+    if (total > 40) {
+      const { height: cardHeight } =
+        refs.galleryWrapperEl.firstElementChild.getBoundingClientRect();
+
+      window.scrollBy({
+        top: cardHeight * 2,
+        behavior: 'smooth',
+      });
+    }
   } catch (error) {
     Report.failure('404', '');
     console.error(error);
@@ -94,3 +93,10 @@ let lightbox = new SimpleLightbox('.gallery a', {
   captionPosition: 'bottom',
   captionDelay: 250,
 });
+
+function clearGallery() {
+  totalHitsImg = 0;
+  currentPage = 1;
+  refs.spanEl.innerHTML = '';
+  refs.galleryWrapperEl.innerHTML = '';
+}
